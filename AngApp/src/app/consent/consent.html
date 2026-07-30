@@ -1,0 +1,11 @@
+<h1>Consent Form</h1>
+<p>profile</p>
+<p>email</p>
+<p>roles</p>
+<form action="/Identity/Api/Authorization/Authorize" method="post" enctype="application/x-www-form-urlencoded">
+    @for(key of this.activatedRoute.snapshot.queryParamMap.keys; track key){
+    <input type="hidden" [name]="key" [value]="this.activatedRoute.snapshot.queryParamMap.get(key)" />
+    }
+    <input name="submit.Accept" type="submit" value="Yes" />
+    <input name="submit.Deny" type="submit" value="No" />
+</form>
