@@ -203,21 +203,36 @@ public class Program
 
 
         //******************* AntiForgery *******************
-        builder.Services.AddAntiforgery(options =>
+        /*builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-CSRF-TOKEN";
             //options.Cookie.Name = "XSRF-TOKEN";//swap error
-        });
+        });*/
 
 
 
         //******************* IHttpClientFactory *******************
-        builder.Services.AddHttpClient();
+        //builder.Services.AddHttpClient();
 
 
 
         //**************************** Custom Services **************************
         builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+
+
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin", policy =>
+                {
+                    policy.WithOrigins("https://localhost:5444", "https://localhost:5445")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+                });
+            });
+        }
 
 
 
