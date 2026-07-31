@@ -4,8 +4,9 @@ import { Authorizing } from './authorizing/authorizing';
 
 export const routes: Routes = [
     {path: "Authorize/Consent", component: Consent},
-    {path: "Account/Login", redirectTo: ()=>{
-            window.location.href = "https://localhost:5444";
+    {path: "Account/Login", redirectTo: (activatedRouteSnapshot)=>{
+            window.location.href = 
+            `https://localhost:5444/?ReturnUrl=https://localhost:5443/${activatedRouteSnapshot.queryParamMap.get("ReturnUrl")}`;
             return "";
         }
     },

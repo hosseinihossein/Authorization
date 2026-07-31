@@ -301,21 +301,21 @@ public class Program
             // ***** Angular app *****
             var appManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-            if (await appManager.FindByClientIdAsync("AngAuthorizationApp001") is null)
+            if (await appManager.FindByClientIdAsync("UserProfileApp") is null)
             {
                 await appManager.CreateAsync(new OpenIddictApplicationDescriptor
                 {
-                    ClientId = "AngAuthorizationApp001",
+                    ClientId = "UserProfileApp",
                     ConsentType = ConsentTypes.Explicit,
-                    DisplayName = "Angular Client Application 001 For Authorization",
+                    DisplayName = "User Profile Angular Client Application",
                     ClientType = ClientTypes.Public,
                     PostLogoutRedirectUris =
                     {
-                        new Uri($"https://localhost:{builder.Configuration["TcpPort"]}")
+                        new Uri("https://localhost:5445")
                     },
                     RedirectUris =
                     {
-                        new Uri($"https://localhost:{builder.Configuration["TcpPort"]}")
+                        new Uri("https://localhost:5445")
                     },
                     Permissions =
                     {

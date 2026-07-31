@@ -12,7 +12,7 @@ import { SingletonService } from './shared/singleton-service';
 })
 export class App {
   iconService = inject(IconService);
-  private readonly oidcSecurityService = inject(OidcSecurityService);
+  /*private readonly oidcSecurityService = inject(OidcSecurityService);
   private readonly singleton = inject(SingletonService);
   
   ngOnInit(): void {
@@ -22,5 +22,5 @@ export class App {
       console.log("isAuthenticated: "+isAuthenticated);
       this.singleton.authChekced.set(true);
     });
-  }
+  }*/
 }

@@ -2,7 +2,7 @@
 <p>profile</p>
 <p>email</p>
 <p>roles</p>
-<form action="/Identity/Api/Authorization/Authorize" method="post" enctype="application/x-www-form-urlencoded">
+<form action="/Authorization/Api/Authorize" method="post" enctype="application/x-www-form-urlencoded">
     @for(key of this.activatedRoute.snapshot.queryParamMap.keys; track key){
     <input type="hidden" [name]="key" [value]="this.activatedRoute.snapshot.queryParamMap.get(key)" />
     }

@@ -4,14 +4,14 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { MyErrorHandler } from './shared/my-error-handler';
 
-import { provideAuth, LogLevel } from 'angular-auth-oidc-client';
+//import { provideAuth, LogLevel } from 'angular-auth-oidc-client';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     //provideBrowserGlobalErrorListeners(),
     {provide: ErrorHandler, useClass: MyErrorHandler},
     provideRouter(routes),
-    provideAuth({
+    /*provideAuth({
       config: {
         authority: 'https://localhost:5443',
         redirectUrl: "https://localhost:5443",
@@ -23,6 +23,6 @@ export const appConfig: ApplicationConfig = {
         useRefreshToken: true,
         logLevel: LogLevel.Debug,
       },
-    }),
+    }),*/
   ]
 };
