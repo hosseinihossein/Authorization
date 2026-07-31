@@ -40733,7 +40733,27 @@ var routes = [
   {
     path: "Account/Login",
     redirectTo: (activatedRouteSnapshot) => {
-      window.location.href = `https://localhost:5444/?ReturnUrl=https://localhost:5443/${activatedRouteSnapshot.queryParamMap.get("ReturnUrl")}`;
+      let url = new URL("https://localhost:5444/");
+      for (let key of activatedRouteSnapshot.queryParamMap.keys) {
+        if (key === "ReturnUrl") {
+          url.searchParams.append(key, "https://localhost:5443/" + activatedRouteSnapshot.queryParamMap.get(key));
+        }
+        url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key));
+      }
+      window.location.href = url.toString();
+      return "";
+    }
+  },
+  {
+    path: "Authorization/Api/Authorize",
+    redirectTo: (activatedRouteSnapshot) => {
+      if (activatedRouteSnapshot.queryParamMap.has("redirect_uri")) {
+        let url = new URL(activatedRouteSnapshot.queryParamMap.get("redirect_uri") + "/");
+        for (let key of activatedRouteSnapshot.queryParamMap.keys) {
+          url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key));
+        }
+        console.log(url.toString());
+      }
       return "";
     }
   },
@@ -49685,5 +49705,5 @@ var App = class _App {
 
 // src/main.ts
 bootstrapApplication(App, appConfig).catch((err) => console.error(err));
-//# debugId=6146d5f2-b8ca-5a23-8424-ddc37e51bdcc
+//# debugId=1cfa830f-0b08-5b6f-8dfb-8eb843897839
 //# sourceMappingURL=main.js.map
