@@ -79,6 +79,12 @@ public class Program
             options.UseOpenIddict<Guid>();
         });
 
+        // DataProtection DbContext
+        builder.Services.AddDbContext<DataProtection_DbContext>(options =>
+        {
+            options.UseNpgsql(builder.Configuration["ConnectionStrings_Postgres:DataProtectionConnection"]);
+        });
+
 
 
         // Identity
