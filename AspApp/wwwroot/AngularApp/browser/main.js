@@ -40848,19 +40848,16 @@ var Authorizing = class _Authorizing {
   static \u0275fac = function Authorizing_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _Authorizing)();
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Authorizing, selectors: [["app-authorizing"]], decls: 3, vars: 0, consts: [[2, "text-align", "center"]], template: function Authorizing_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Authorizing, selectors: [["app-authorizing"]], decls: 1, vars: 0, template: function Authorizing_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275element(0, "app-wait-spinner");
-      \u0275\u0275elementStart(1, "p", 0);
-      \u0275\u0275text(2, "Authorizing");
-      \u0275\u0275elementEnd();
     }
   }, dependencies: [WaitSpinner], encapsulation: 2 });
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Authorizing, [{
     type: Component,
-    args: [{ selector: "app-authorizing", imports: [WaitSpinner], template: '<app-wait-spinner></app-wait-spinner>\n<p style="text-align: center;">Authorizing</p>' }]
+    args: [{ selector: "app-authorizing", imports: [WaitSpinner], template: '<app-wait-spinner></app-wait-spinner>\n<!--p style="text-align: center;">Authorizing</p-->' }]
   }], null, null);
 })();
 (() => {
@@ -40870,6 +40867,13 @@ var Authorizing = class _Authorizing {
 // src/app/app.routes.ts
 var routes = [
   { path: "Authorize/Consent", component: Consent },
+  {
+    path: "Account/Login",
+    redirectTo: () => {
+      window.location.href = "https://localhost:5444";
+      return "";
+    }
+  },
   { path: "", component: Authorizing }
 ];
 
@@ -56606,5 +56610,5 @@ var App = class _App {
 
 // src/main.ts
 bootstrapApplication(App, appConfig).catch((err) => console.error(err));
-//# debugId=11854de2-f330-54ec-8e29-f8532e1632c4
+//# debugId=d9cfe8a3-e397-58be-9841-9509871e11a4
 //# sourceMappingURL=main.js.map

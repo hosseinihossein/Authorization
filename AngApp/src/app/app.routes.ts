@@ -4,5 +4,10 @@ import { Authorizing } from './authorizing/authorizing';
 
 export const routes: Routes = [
     {path: "Authorize/Consent", component: Consent},
+    {path: "Account/Login", redirectTo: ()=>{
+            window.location.href = "https://localhost:5444";
+            return "";
+        }
+    },
     {path: "", component: Authorizing},
 ];
