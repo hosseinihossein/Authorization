@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { Consent } from './consent/consent';
-import { Authorizing } from './authorizing/authorizing';
+import { WaitSpinner } from './shared/wait-spinner/wait-spinner';
 
 export const routes: Routes = [
     {path: "Authorize/Consent", component: Consent},
@@ -13,5 +13,5 @@ export const routes: Routes = [
             return "";
         }
     },
-    {path: "", component: Authorizing},
+    {path: "", component: WaitSpinner},
 ];

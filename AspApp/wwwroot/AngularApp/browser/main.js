@@ -40706,27 +40706,6 @@ var WaitSpinner = class _WaitSpinner {
   (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(WaitSpinner, { className: "WaitSpinner", filePath: "src/app/shared/wait-spinner/wait-spinner.ts", lineNumber: 12 });
 })();
 
-// src/app/authorizing/authorizing.ts
-var Authorizing = class _Authorizing {
-  static \u0275fac = function Authorizing_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _Authorizing)();
-  };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Authorizing, selectors: [["app-authorizing"]], decls: 1, vars: 0, template: function Authorizing_Template(rf, ctx) {
-    if (rf & 1) {
-      \u0275\u0275element(0, "app-wait-spinner");
-    }
-  }, dependencies: [WaitSpinner], encapsulation: 2 });
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Authorizing, [{
-    type: Component,
-    args: [{ selector: "app-authorizing", imports: [WaitSpinner], template: '<app-wait-spinner></app-wait-spinner>\n<!--p style="text-align: center;">Authorizing</p-->' }]
-  }], null, null);
-})();
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Authorizing, { className: "Authorizing", filePath: "src/app/authorizing/authorizing.ts", lineNumber: 10 });
-})();
-
 // src/app/app.routes.ts
 var routes = [
   { path: "Authorize/Consent", component: Consent },
@@ -40741,19 +40720,7 @@ var routes = [
       return "";
     }
   },
-  /*{path: "Authorization/Api/Authorize", redirectTo: (activatedRouteSnapshot)=>{
-          if(activatedRouteSnapshot.queryParamMap.has("redirect_uri")){
-              let url = new URL(activatedRouteSnapshot.queryParamMap.get("redirect_uri")! + "/");
-              for(let key of activatedRouteSnapshot.queryParamMap.keys){
-                  url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key)!);
-              }
-              console.log(url.toString());
-              //window.location.href = url.toString();
-          }
-          return "";
-      }
-  },*/
-  { path: "", component: Authorizing }
+  { path: "", component: WaitSpinner }
 ];
 
 // node_modules/@angular/cdk/fesm2022/_fake-event-detection-chunk.mjs
@@ -48982,19 +48949,6 @@ var appConfig = {
     //provideBrowserGlobalErrorListeners(),
     { provide: ErrorHandler, useClass: MyErrorHandler },
     provideRouter(routes)
-    /*provideAuth({
-      config: {
-        authority: 'https://localhost:5443',
-        redirectUrl: "https://localhost:5443",
-        postLogoutRedirectUri: "https://localhost:5443",
-        clientId: 'AngAuthorizationApp001',
-        scope: 'openid email roles offline_access',
-        responseType: 'code',
-        silentRenew: true,
-        useRefreshToken: true,
-        logLevel: LogLevel.Debug,
-      },
-    }),*/
   ]
 };
 
@@ -49696,10 +49650,10 @@ var App = class _App {
   }], null, null);
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(App, { className: "App", filePath: "src/app/app.ts", lineNumber: 13 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(App, { className: "App", filePath: "src/app/app.ts", lineNumber: 11 });
 })();
 
 // src/main.ts
 bootstrapApplication(App, appConfig).catch((err) => console.error(err));
-//# debugId=a28ca23d-846f-5e05-99c9-dcba3863fbfa
+//# debugId=aac68be2-4a6d-5663-991d-9add6d5841f1
 //# sourceMappingURL=main.js.map
