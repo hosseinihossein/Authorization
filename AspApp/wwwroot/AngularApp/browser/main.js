@@ -40735,28 +40735,24 @@ var routes = [
     redirectTo: (activatedRouteSnapshot) => {
       let url = new URL("https://localhost:5444/");
       for (let key of activatedRouteSnapshot.queryParamMap.keys) {
-        if (key === "ReturnUrl") {
-          url.searchParams.append(key, "https://localhost:5443/" + activatedRouteSnapshot.queryParamMap.get(key));
-        }
         url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key));
       }
       window.location.href = url.toString();
       return "";
     }
   },
-  {
-    path: "Authorization/Api/Authorize",
-    redirectTo: (activatedRouteSnapshot) => {
-      if (activatedRouteSnapshot.queryParamMap.has("redirect_uri")) {
-        let url = new URL(activatedRouteSnapshot.queryParamMap.get("redirect_uri") + "/");
-        for (let key of activatedRouteSnapshot.queryParamMap.keys) {
-          url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key));
-        }
-        console.log(url.toString());
+  /*{path: "Authorization/Api/Authorize", redirectTo: (activatedRouteSnapshot)=>{
+          if(activatedRouteSnapshot.queryParamMap.has("redirect_uri")){
+              let url = new URL(activatedRouteSnapshot.queryParamMap.get("redirect_uri")! + "/");
+              for(let key of activatedRouteSnapshot.queryParamMap.keys){
+                  url.searchParams.append(key, activatedRouteSnapshot.queryParamMap.get(key)!);
+              }
+              console.log(url.toString());
+              //window.location.href = url.toString();
+          }
+          return "";
       }
-      return "";
-    }
-  },
+  },*/
   { path: "", component: Authorizing }
 ];
 
@@ -49705,5 +49701,5 @@ var App = class _App {
 
 // src/main.ts
 bootstrapApplication(App, appConfig).catch((err) => console.error(err));
-//# debugId=1cfa830f-0b08-5b6f-8dfb-8eb843897839
+//# debugId=a28ca23d-846f-5e05-99c9-dcba3863fbfa
 //# sourceMappingURL=main.js.map
