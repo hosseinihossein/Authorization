@@ -33,7 +33,7 @@ public class Program
         {
             serverSigningCert = X509CertificateLoader.LoadPkcs12FromFile(serverSigningCertPath, string.Empty);
         }
-        else
+        /*else
         {
             using var algorithm = RSA.Create(keySizeInBits: 4096);
 
@@ -44,6 +44,43 @@ public class Program
             serverSigningCert = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(2));
 
             await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
+        }*/
+        else
+        {
+            // 1. Create an ECDSA key pair
+            using ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+            // 2. Define certificate subject
+            var subject = new X500DistinguishedName("CN=OIDC Server Signing Certificate");
+
+            // 3. Create certificate request
+            var request = new CertificateRequest(
+                subject,
+                ecdsa,
+                HashAlgorithmName.SHA256
+            );
+
+            // Optional: Add extensions
+            request.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(false, false, 0, false)
+            );
+            request.CertificateExtensions.Add(
+                new X509KeyUsageExtension(
+                    X509KeyUsageFlags.DigitalSignature,// | X509KeyUsageFlags.KeyEncipherment,
+                    critical: false
+                )
+            );
+            request.CertificateExtensions.Add(
+                new X509SubjectKeyIdentifierExtension(request.PublicKey, false)
+            );
+
+            serverSigningCert = request.CreateSelfSigned(
+                DateTimeOffset.UtcNow.AddDays(-1),
+                DateTimeOffset.UtcNow.AddYears(1)
+            );
+
+            await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
+
         }
 
 
@@ -183,7 +220,8 @@ public class Program
                 Convert.FromBase64String(builder.Configuration["OidcServerEncryptionKey"]!)
             ));
 
-            options.AddSigningCertificate(serverSigningCert);
+            //options.AddSigningCertificate(serverSigningCert);
+            options.AddSigningCredentials(new X509SigningCredentials(serverSigningCert));
 
             options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
