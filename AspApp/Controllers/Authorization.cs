@@ -43,8 +43,8 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpGet("~/Authorization/Api/Authorize")]
-    [HttpPost("~/Authorization/Api/Authorize")]
+    [HttpGet("~/Api/Authorization/Authorize")]
+    [HttpPost("~/Api/Authorization/Authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -230,7 +230,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Accept")]
-    [HttpPost("~/Authorization/Api/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("~/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
     public async Task<IActionResult> Accept()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();
@@ -322,7 +322,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Deny")]
-    [HttpPost("~/Authorization/Api/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("~/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
     // Notify OpenIddict that the authorization grant has been denied by the resource owner
     // to redirect the user agent to the client application using the appropriate response_mode.
     public async Task<IActionResult> Deny() //=> Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -340,7 +340,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize]
-    [HttpGet("~/Authorization/Api/Logout")]
+    [HttpGet("~/Api/Authorization/Logout")]
     public async Task<IActionResult> Logout()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -365,7 +365,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize]
-    [/*ActionName(nameof(Logout)),*/ HttpPost("~/Authorization/Api/Logout")/*, ValidateAntiForgeryToken*/]
+    [/*ActionName(nameof(Logout)),*/ HttpPost("~/Api/Authorization/Logout")/*, ValidateAntiForgeryToken*/]
     public async Task<IActionResult> LogoutPost()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -389,7 +389,7 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpPost("~/Authorization/Api/Token"), IgnoreAntiforgeryToken, Produces("application/json")]
+    [HttpPost("~/Api/Authorization/Token"), IgnoreAntiforgeryToken, Produces("application/json")]
     public async Task<IActionResult> Exchange()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();
