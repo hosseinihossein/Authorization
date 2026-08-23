@@ -34,7 +34,7 @@ public class Program
         {
             serverSigningCert = X509CertificateLoader.LoadPkcs12FromFile(serverSigningCertPath, string.Empty);
         }
-        /*else
+        else
         {
             using var algorithm = RSA.Create(keySizeInBits: 4096);
 
@@ -42,11 +42,11 @@ public class Program
             var request = new CertificateRequest(subject, algorithm, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
 
-            serverSigningCert = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(2));
+            serverSigningCert = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(2));
 
             await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
-        }*/
-        else
+        }
+        /*else
         {
             // 1. Create an ECDSA key pair
             using ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -82,7 +82,7 @@ public class Program
 
             await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
 
-        }
+        }*/
 
 
 
@@ -159,7 +159,7 @@ public class Program
             options.ExpireTimeSpan = TimeSpan.FromDays(14);
             options.SlidingExpiration = true;
 
-            //options.LoginPath = "/Account/Login";
+            options.LoginPath = "/Authentication";
             //options.AccessDeniedPath = "/Account/AccessDenied";
         });
 
@@ -201,10 +201,14 @@ public class Program
         })
         .AddServer(options =>
         {
-            options.SetAuthorizationEndpointUris("Api/Authorization/Authorize")
-            .SetEndSessionEndpointUris("Api/Authorization/Logout")
-            .SetTokenEndpointUris("Api/Authorization/Token")
-            .SetUserInfoEndpointUris("Api/Authorization/UserInfo");
+            //options.Disa
+
+            options.SetAuthorizationEndpointUris("/Api/Authorization/Authorize")
+            .SetEndSessionEndpointUris("/Api/Authorization/Logout")
+            .SetTokenEndpointUris("/Api/Authorization/Token")
+            .SetUserInfoEndpointUris("/Api/Authorization/UserInfo");
+            //.SetJsonWebKeySetEndpointUris(builder.Configuration["OidcIssuer"]+"/.well-known/jwks")
+            //.SetIssuer(builder.Configuration["OidcIssuer"]!);
 
             options.RegisterScopes(Scopes.Email, Scopes.Roles);
 
@@ -219,17 +223,21 @@ public class Program
             // Note: in a real world application, this encryption key should be
             // stored in a safe place (e.g in Azure KeyVault, stored as a secret).
             options.AddEncryptionKey(new SymmetricSecurityKey(
-                Convert.FromBase64String(builder.Configuration["OidcServerEncryptionKey"]!)
+                //Convert.FromBase64String(builder.Configuration["OidcServerEncryptionKey"]!)
+                Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")
             ));
+            //options.DisableAccessTokenEncryption();//throws exception
+            //options.AddDevelopmentEncryptionCertificate();
 
-            //options.AddSigningCertificate(serverSigningCert);
-            options.AddSigningCredentials(new X509SigningCredentials(serverSigningCert));
+            options.AddSigningCertificate(serverSigningCert);
+            //options.AddSigningCredentials(new X509SigningCredentials(serverSigningCert, SecurityAlgorithms.EcdsaSha256));
 
             options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
             .EnableEndSessionEndpointPassthrough()
             .EnableTokenEndpointPassthrough()
-            .EnableStatusCodePagesIntegration();
+            .EnableStatusCodePagesIntegration()
+            .DisableTransportSecurityRequirement();
 
             options.RequireProofKeyForCodeExchange();//enables globally
 
@@ -295,7 +303,8 @@ public class Program
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownIPNetworks = {new System.Net.IPNetwork(IPAddress.Parse("172.18.0.0"),16)}
         });
 
 
@@ -309,6 +318,14 @@ public class Program
 
         app.MapControllers();
         app.MapDefaultControllerRoute();
+
+        app.MapGet("/client-info", (HttpContext context) =>
+        {
+            var ip = context.Connection.RemoteIpAddress?.ToString();
+            var scheme = context.Request.Scheme;
+            var headers = context.Request.Headers.Select(h=>h.Key+" = "+h.Value.ToString());
+            return Results.Ok(new { ClientIP = ip, Scheme = scheme, Headers = headers });
+        });
 
         /*app.Map("/{*catchAll}", async (HttpContext context, FileExtensionContentTypeProvider provider) =>
         {

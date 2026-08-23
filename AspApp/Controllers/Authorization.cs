@@ -43,8 +43,8 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpGet("~/Api/Authorization/Authorize")]
-    [HttpPost("~/Api/Authorization/Authorize")]
+    [HttpGet("/Api/Authorization/Authorize")]
+    [HttpPost("/Api/Authorization/Authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -188,6 +188,8 @@ public class AuthorizationController : ControllerBase
                     .ToListAsync()
                 );
 
+                //claimsIdentity.SetAudiences("")
+
                 // Automatically create a permanent authorization to avoid requiring explicit consent
                 // for future authorization or token requests containing the same scopes.
                 var authorization = authorizations.LastOrDefault();
@@ -221,7 +223,7 @@ public class AuthorizationController : ControllerBase
 
             // In every other case, render the consent form.
             default:
-                string redirectUri = "/Authorize/Consent" +
+                string redirectUri = "/Authorization/Consent" +
                 QueryString.Create(Request.HasFormContentType ? Request.Form : Request.Query);
                 return Redirect(redirectUri);
         }
@@ -230,7 +232,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Accept")]
-    [HttpPost("~/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
     public async Task<IActionResult> Accept()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();
@@ -322,7 +324,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Deny")]
-    [HttpPost("~/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
     // Notify OpenIddict that the authorization grant has been denied by the resource owner
     // to redirect the user agent to the client application using the appropriate response_mode.
     public async Task<IActionResult> Deny() //=> Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -340,7 +342,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize]
-    [HttpGet("~/Api/Authorization/Logout")]
+    [HttpGet("/Api/Authorization/Logout")]
     public async Task<IActionResult> Logout()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -365,7 +367,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize]
-    [/*ActionName(nameof(Logout)),*/ HttpPost("~/Api/Authorization/Logout")/*, ValidateAntiForgeryToken*/]
+    [/*ActionName(nameof(Logout)),*/ HttpPost("/Api/Authorization/Logout")/*, ValidateAntiForgeryToken*/]
     public async Task<IActionResult> LogoutPost()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -389,7 +391,7 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpPost("~/Api/Authorization/Token"), IgnoreAntiforgeryToken, Produces("application/json")]
+    [HttpPost("/Api/Authorization/Token"), IgnoreAntiforgeryToken, Produces("application/json")]
     public async Task<IActionResult> Exchange()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();
