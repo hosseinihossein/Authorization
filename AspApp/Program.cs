@@ -28,13 +28,13 @@ public class Program
 
         //****************** Certificates ****************
         // Server signing
-        string serverSigningCertPath = Path.Combine(certsDirPath, "oidc-server-signing-certificate.pfx");
+        /*string serverSigningCertPath = Path.Combine(certsDirPath, "oidc-server-signing-certificate.pfx");
         X509Certificate2 serverSigningCert;
         if (File.Exists(serverSigningCertPath))
         {
             serverSigningCert = X509CertificateLoader.LoadPkcs12FromFile(serverSigningCertPath, string.Empty);
-        }
-        else
+        }*/
+        /*else
         {
             using var algorithm = RSA.Create(keySizeInBits: 4096);
 
@@ -45,7 +45,7 @@ public class Program
             serverSigningCert = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(2));
 
             await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
-        }
+        }*/
         /*else
         {
             // 1. Create an ECDSA key pair
@@ -189,9 +189,9 @@ public class Program
             options.SetAuthorizationEndpointUris("/Api/Authorization/Authorize")
             .SetEndSessionEndpointUris("/Api/Authorization/Logout")
             .SetTokenEndpointUris("/Api/Authorization/Token")
-            .SetUserInfoEndpointUris("/Api/Authorization/UserInfo");
+            .SetUserInfoEndpointUris("/Api/Authorization/UserInfo")
             //.SetJsonWebKeySetEndpointUris(builder.Configuration["OidcIssuer"]+"/.well-known/jwks")
-            //.SetIssuer(builder.Configuration["OidcIssuer"]!);
+            .SetIssuer(builder.Configuration["MyAppDomain"]!);
 
             options.RegisterScopes(Scopes.Email, Scopes.Roles);
 
@@ -211,8 +211,13 @@ public class Program
             //options.DisableAccessTokenEncryption();//throws exception
             //options.AddDevelopmentEncryptionCertificate();
 
-            options.AddSigningCertificate(serverSigningCert);
+            //options.AddSigningCertificate(serverSigningCert);
             //options.AddSigningCredentials(new X509SigningCredentials(serverSigningCert, SecurityAlgorithms.EcdsaSha256));
+            options.AddSigningCredentials(new SigningCredentials(
+                new ECDsaSecurityKey(ECDsa.Create(ECCurve.NamedCurves.nistP256)),
+                SecurityAlgorithms.EcdsaSha256   
+            ));
+            //options.AddSigningKey()
 
             options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
@@ -272,11 +277,11 @@ public class Program
                     ClientType = ClientTypes.Public,
                     PostLogoutRedirectUris =
                     {
-                        new Uri(builder.Configuration["HostName"] + "/UserProfile")
+                        new Uri(builder.Configuration["MyAppDomain"] + "/UserProfile")
                     },
                     RedirectUris =
                     {
-                        new Uri(builder.Configuration["HostName"] + "/UserProfile")
+                        new Uri(builder.Configuration["MyAppDomain"] + "/UserProfile")
                     },
                     Permissions =
                     {
