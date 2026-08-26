@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using AspApp.Models;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -267,11 +268,11 @@ public class Program
             // ***** Angular app *****
             var appManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-            if (await appManager.FindByClientIdAsync("UserProfileApp") is null)
+            if (await appManager.FindByClientIdAsync("NewUserProfileApp_01") is null)
             {
                 await appManager.CreateAsync(new OpenIddictApplicationDescriptor
                 {
-                    ClientId = "UserProfileApp",
+                    ClientId = "NewUserProfileApp_01",
                     ConsentType = ConsentTypes.Explicit,
                     DisplayName = "User Profile Angular Client Application",
                     ClientType = ClientTypes.Public,
@@ -300,6 +301,19 @@ public class Program
                         Requirements.Features.ProofKeyForCodeExchange
                     },
                 });
+            }
+            var myClientApp = await appManager.FindByClientIdAsync("NewUserProfileApp_01");
+            if(myClientApp is not null && myClientApp is OpenIddictApplicationDescriptor)
+            {
+                foreach (var ruri in ((OpenIddictApplicationDescriptor)myClientApp).RedirectUris)
+                {
+                    Console.WriteLine("\n***** ruri= " + ruri);
+                }
+            }
+            else
+            {
+                string json = JsonSerializer.Serialize(myClientApp);
+                Console.WriteLine("\n***** myClientApp json= " + json);
             }
         }
 
