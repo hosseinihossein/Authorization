@@ -14,15 +14,15 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AspApp.Controllers;
 
-//[ApiController]
-//[Route("Identity/Api/[controller]/[action]")]
+[ApiController]
+[Route("/api/identity/[controller]")]
 public class AuthorizationController : ControllerBase
 {
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
-    private readonly UserManager<Identity_UserDbModel> _userManager;
-    private readonly SignInManager<Identity_UserDbModel> _signInManager;
+    private readonly UserManager<IdentityUser<Guid>> _userManager;
+    private readonly SignInManager<IdentityUser<Guid>> _signInManager;
 
 
 
@@ -30,8 +30,8 @@ public class AuthorizationController : ControllerBase
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
-        UserManager<Identity_UserDbModel> userManager,
-        SignInManager<Identity_UserDbModel> signInManager
+        UserManager<IdentityUser<Guid>> userManager,
+        SignInManager<IdentityUser<Guid>> signInManager
     )
     {
         _applicationManager = applicationManager;
@@ -43,8 +43,8 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpGet("/Api/Authorization/Authorize")]
-    [HttpPost("/Api/Authorization/Authorize")]
+    [HttpGet("Authorize")]
+    [HttpPost("Authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -232,7 +232,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Accept")]
-    [HttpPost("/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("Authorize"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Accept()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();
@@ -324,7 +324,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize, FormValueRequired("submit.Deny")]
-    [HttpPost("/Api/Authorization/Authorize")/*, ValidateAntiForgeryToken*/]
+    [HttpPost("Authorize"), ValidateAntiForgeryToken]
     // Notify OpenIddict that the authorization grant has been denied by the resource owner
     // to redirect the user agent to the client application using the appropriate response_mode.
     public async Task<IActionResult> Deny() //=> Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -341,8 +341,9 @@ public class AuthorizationController : ControllerBase
 
 
 
+    // i think this action could be removed, test the app without it
     [Authorize]
-    [HttpGet("/Api/Authorization/Logout")]
+    [HttpGet("Logout")]
     public async Task<IActionResult> Logout()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -367,7 +368,7 @@ public class AuthorizationController : ControllerBase
 
 
     [Authorize]
-    [/*ActionName(nameof(Logout)),*/ HttpPost("/Api/Authorization/Logout")/*, ValidateAntiForgeryToken*/]
+    [/*ActionName(nameof(Logout)),*/ HttpPost("Logout"), ValidateAntiForgeryToken]
     public async Task<IActionResult> LogoutPost()
     {
         // Ask ASP.NET Core Identity to delete the local and external cookies created
@@ -391,7 +392,7 @@ public class AuthorizationController : ControllerBase
 
 
 
-    [HttpPost("/Api/Authorization/Token"), IgnoreAntiforgeryToken, Produces("application/json")]
+    [HttpPost("Token"), IgnoreAntiforgeryToken, Produces("application/json")]
     public async Task<IActionResult> Exchange()
     {
         var openIddictRequest = HttpContext.GetOpenIddictServerRequest();

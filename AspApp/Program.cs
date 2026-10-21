@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using AspApp.Helpers;
 using AspApp.Models;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -23,69 +24,6 @@ public class Program
 
 
 
-        string certsDirPath = Path.Combine(builder.Environment.ContentRootPath, "Certs");
-        Directory.CreateDirectory(certsDirPath);
-
-        //****************** Certificates ****************
-        // Server signing
-        string serverSigningCertPath = Path.Combine(certsDirPath, "oidc-server-signing-certificate.pfx");
-        X509Certificate2 serverSigningCert;
-        if (File.Exists(serverSigningCertPath))
-        {
-            serverSigningCert = X509CertificateLoader.LoadPkcs12FromFile(serverSigningCertPath, string.Empty);
-        }
-        else
-        {
-            using var algorithm = RSA.Create(keySizeInBits: 4096);
-
-            var subject = new X500DistinguishedName("CN=OIDC Server Signing Certificate");
-            var request = new CertificateRequest(subject, algorithm, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
-
-            serverSigningCert = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(2));
-
-            await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
-        }
-        /*else
-        {
-            // 1. Create an ECDSA key pair
-            using ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-
-            // 2. Define certificate subject
-            var subject = new X500DistinguishedName("CN=OIDC Server Signing Certificate");
-
-            // 3. Create certificate request
-            var request = new CertificateRequest(
-                subject,
-                ecdsa,
-                HashAlgorithmName.SHA256
-            );
-
-            // Optional: Add extensions
-            request.CertificateExtensions.Add(
-                new X509BasicConstraintsExtension(false, false, 0, false)
-            );
-            request.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.DigitalSignature,// | X509KeyUsageFlags.KeyEncipherment,
-                    critical: false
-                )
-            );
-            request.CertificateExtensions.Add(
-                new X509SubjectKeyIdentifierExtension(request.PublicKey, false)
-            );
-
-            serverSigningCert = request.CreateSelfSigned(
-                DateTimeOffset.UtcNow.AddDays(-1),
-                DateTimeOffset.UtcNow.AddYears(1)
-            );
-
-            await File.WriteAllBytesAsync(serverSigningCertPath, serverSigningCert.Export(X509ContentType.Pfx, string.Empty));
-
-        }*/
-
-
-
         //******************* Kestrel *******************
         builder.WebHost.ConfigureKestrel(options =>
         {
@@ -95,24 +33,22 @@ public class Program
 
 
 
-        // Identity DbContext
+        //******************* Identity_DbContext *******************
         builder.Services.AddDbContext<Identity_DbContext>(options =>
         {
-            options.UseNpgsql(builder.Configuration["ConnectionStrings_Postgres:IdentityConnection"]);
-
+            options.UseNpgsql(builder.Configuration["Postgres:ConnectionString:Identity"]);
             options.UseOpenIddict<Guid>();
         });
-
-        // DataProtection DbContext
+        //******************* DataProtection_DbContext *******************
         builder.Services.AddDbContext<DataProtection_DbContext>(options =>
         {
-            options.UseNpgsql(builder.Configuration["ConnectionStrings_Postgres:DataProtectionConnection"]);
+            options.UseNpgsql(builder.Configuration["Postgres:ConnectionString:DataProtection"]);
         });
 
 
 
-        // Identity
-        builder.Services.AddIdentity<Identity_UserDbModel, Identity_RoleDbModel>(options =>
+        //******************* Identity service *******************
+        builder.Services.AddIdentity<IdentityUser<Guid>, IdentityRole<Guid>>(options =>
         {
             options.User.AllowedUserNameCharacters =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._";
@@ -122,7 +58,7 @@ public class Program
             options.SignIn.RequireConfirmedEmail = false;
 
             options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 5;
+            options.Password.RequiredLength = 8;
             options.Password.RequireLowercase = false;
             options.Password.RequireUppercase = false;
             options.Password.RequireNonAlphanumeric = false;
@@ -132,28 +68,21 @@ public class Program
         .AddDefaultTokenProviders();
 
 
-
-        //******************* config identity cookie *******************
+        //******************* identity cookie *******************
         builder.Services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.HttpOnly = true; // prevent from js access
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // https only
-            options.Cookie.SameSite = SameSiteMode.None;// no csrf protection to solve strict tracking prevention mechanisms
+            options.Cookie.SameSite = SameSiteMode.Lax;// protect unsafe methods from csrf
+            options.Cookie.Path = "/api/identity/";
 
             //Default for "Remember Me". Without "Remember Me" → Session cookie (expires when browser closes)
-            options.ExpireTimeSpan = TimeSpan.FromDays(14);
-            options.SlidingExpiration = true;
+            options.ExpireTimeSpan = TimeSpan.FromDays(14);//null or don't set for session lifetime
+            options.SlidingExpiration = true;//Reset expiration when user interacts halfway through the lifespan
 
             options.LoginPath = "/Authentication";
             //options.AccessDeniedPath = "/Account/AccessDenied";
         });
-
-        //******************* SecurityStampValidatorOptions *******************
-        builder.Services.Configure<SecurityStampValidatorOptions>(options =>
-        {
-            options.ValidationInterval = TimeSpan.Zero;
-        });
-
 
 
         //******************* Data Protection *******************
@@ -161,6 +90,13 @@ public class Program
         builder.Services.AddDataProtection()
         .PersistKeysToDbContext<DataProtection_DbContext>() // Store keys in the same DB
         .SetApplicationName("SharedIdentityApp"); // Must match across all servers
+
+
+        //******************* SecurityStampValidatorOptions *******************
+        builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+        {
+            options.ValidationInterval = TimeSpan.Zero;
+        });
 
 
 
@@ -173,6 +109,10 @@ public class Program
         builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
 
+        // **********    CertManager    **********
+        CertManager certManager = new(builder.Environment);
+        builder.Services.AddSingleton<CertManager>(certManager);
+
 
         // OpenIddict
         builder.Services.AddOpenIddict()
@@ -184,12 +124,12 @@ public class Program
 
             options.UseQuartz();
         })
-        .AddServer(options =>
+        .AddServer(async options =>
         {
-            options.SetAuthorizationEndpointUris("/Api/Authorization/Authorize")
-            .SetEndSessionEndpointUris("/Api/Authorization/Logout")
-            .SetTokenEndpointUris("/Api/Authorization/Token")
-            .SetUserInfoEndpointUris("/Api/Authorization/UserInfo");
+            options.SetAuthorizationEndpointUris("/api/identity/Authorization/Authorize")
+            .SetEndSessionEndpointUris("/api/identity/Authorization/Logout")
+            .SetTokenEndpointUris("/api/identity/Authorization/Token")
+            .SetUserInfoEndpointUris("/api/identity/Authorization/UserInfo");
             //.SetJsonWebKeySetEndpointUris(builder.Configuration["OidcIssuer"]+"/.well-known/jwks")
             //.SetIssuer(builder.Configuration["OidcIssuer"]!);
 
@@ -199,7 +139,6 @@ public class Program
             .AllowAuthorizationCodeFlow()
             .AllowRefreshTokenFlow();
 
-            //options.AddDevelopmentEncryptionCertificate()
             // Register the encryption credentials. This sample uses a symmetric
             // encryption key that is shared between the server and the API project.
             //
@@ -211,8 +150,18 @@ public class Program
             //options.DisableAccessTokenEncryption();//throws exception
             //options.AddDevelopmentEncryptionCertificate();
 
-            options.AddSigningCertificate(serverSigningCert);
+            //options.AddSigningCertificate(serverSigningCert);
             //options.AddSigningCredentials(new X509SigningCredentials(serverSigningCert, SecurityAlgorithms.EcdsaSha256));
+            X509Certificate2 ecdsaSigningCert = await certManager.GetEcdsaSigningCert();
+            // Extract the ECDSA key and pass it as a raw signing key
+            if (ecdsaSigningCert.GetECDsaPrivateKey() is ECDsa ecdsaKey)
+            {
+                options.AddSigningKey(new ECDsaSecurityKey(ecdsaKey));
+            }
+            else
+            {
+                throw new Exception("Invalid certificate type for oidc signing: Expected an ECDSA PFX file.");
+            }
 
             options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
@@ -223,20 +172,36 @@ public class Program
 
             options.RequireProofKeyForCodeExchange();//enables globally
 
-            options.SetAccessTokenLifetime(TimeSpan.FromHours(10));
-            options.SetIdentityTokenLifetime(TimeSpan.FromHours(10));
+            options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
+            options.SetIdentityTokenLifetime(TimeSpan.FromHours(1));
             options.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
         });
 
 
-
         //******************* ControllersWithViews *******************
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllers();
 
+
+        //******************* AntiForgery *******************
+        builder.Services.AddAntiforgery(options =>
+        {
+            options.HeaderName = "X-CSRF-TOKEN";
+            //options.Cookie.Name = "XSRF-TOKEN";//swap error
+        });
+
+
+        //**************************** Kafka Producer **************************
+        KafkaProducerService kafkaService = new(builder.Configuration);
+        builder.Services.AddSingleton<KafkaProducerService>(kafkaService);
+
+
+        //**************************** Logger **************************
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole(); // Keep Console for local visibility
+        builder.Logging.AddKafka(kafkaService, builder.Configuration);
 
 
         var app = builder.Build();
-
 
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -244,7 +209,6 @@ public class Program
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
             KnownIPNetworks = { new System.Net.IPNetwork(IPAddress.Parse("172.18.0.0"), 16) }
         });
-
 
 
         app.UseRouting();
@@ -262,21 +226,21 @@ public class Program
             // ***** Angular app *****
             var appManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-            if (await appManager.FindByClientIdAsync("UserProfileApp") is null)
+            if (await appManager.FindByClientIdAsync("HoLibz_Angular_App") is null)
             {
                 await appManager.CreateAsync(new OpenIddictApplicationDescriptor
                 {
-                    ClientId = "UserProfileApp",
+                    ClientId = "HoLibz_Angular_App",
                     ConsentType = ConsentTypes.Explicit,
-                    DisplayName = "User Profile Angular Client Application",
+                    DisplayName = "HoLibz Angular Client Application",
                     ClientType = ClientTypes.Public,
                     PostLogoutRedirectUris =
                     {
-                        new Uri(builder.Configuration["HostName"] + "/UserProfile")
+                        new Uri(builder.Configuration["HostName"] + "/")
                     },
                     RedirectUris =
                     {
-                        new Uri(builder.Configuration["HostName"] + "/UserProfile")
+                        new Uri(builder.Configuration["HostName"] + "/")
                     },
                     Permissions =
                     {
@@ -290,17 +254,16 @@ public class Program
                         //Permissions.Scopes.Profile,
                         Permissions.Scopes.Roles,
                     },
-                    Requirements =
+                    /*Requirements =
                     {
                         Requirements.Features.ProofKeyForCodeExchange
-                    },
+                    },*/
                 });
             }
         }
 
 
         //******************* app.Run ******************
-        //Console.WriteLine($"\n*** App is running on all network interfaces on port '{builder.Configuration["TcpPort"]}'");
         Console.WriteLine($"\n*** App is running on all network, port '80'");
         app.Run();
     }
