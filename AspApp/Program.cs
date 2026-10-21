@@ -254,7 +254,7 @@ public class Program
                         //Permissions.Scopes.Profile,
                         Permissions.Scopes.Roles,
                     },
-                    /*Requirements =
+                    /*Requirements =// globally set at server configs
                     {
                         Requirements.Features.ProofKeyForCodeExchange
                     },*/
