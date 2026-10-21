@@ -131,7 +131,7 @@ public class Program
             .SetTokenEndpointUris("/api/identity/Authorization/Token")
             .SetUserInfoEndpointUris("/api/identity/Authorization/UserInfo");
             //.SetJsonWebKeySetEndpointUris(builder.Configuration["OidcIssuer"]+"/.well-known/jwks")
-            //.SetIssuer(builder.Configuration["OidcIssuer"]!);
+            //.SetIssuer(builder.Configuration["MyAppDomain"]!);
 
             options.RegisterScopes(Scopes.Email, Scopes.Roles);
 
